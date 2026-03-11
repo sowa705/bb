@@ -146,5 +146,5 @@ void scene10()
     ezoom = 0.1;
     do3d(11.5 * 1000000);
     params->gamma = 1;
-
+    destructor();
 }

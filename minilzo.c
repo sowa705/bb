@@ -883,7 +883,7 @@ static lzo_bool ptr_check(void)
 {
     lzo_bool r = 1;
     int i;
-    char _wrkmem[10 * sizeof(lzo_byte *) + sizeof(lzo_align_t)];
+    char _wrkmem[10 * sizeof(lzo_byte *) + sizeof(lzo_align_t)] = {0};
     lzo_byte *wrkmem;
     const lzo_bytepp dict;
     unsigned char x[4 * sizeof(lzo_align_t)];

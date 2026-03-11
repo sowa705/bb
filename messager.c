@@ -40,8 +40,12 @@ static void newline()
 	start = 0;
     cursor_y++, cursor_x = 0;
     if (cursor_y >= aa_scrheight(context)) {
-	memcpy(context->textbuffer + start * aa_scrwidth(context), context->textbuffer + (start + 1) * aa_scrwidth(context), aa_scrwidth(context) * (aa_scrheight(context) - start - 1));
-	memcpy(context->attrbuffer + start * aa_scrwidth(context), context->attrbuffer + (start + 1) * aa_scrwidth(context), aa_scrwidth(context) * (aa_scrheight(context) - start - 1));
+	int iter = 0;
+        do {
+		memcpy(context->textbuffer + (start + iter) * aa_scrwidth(context), context->textbuffer + (start + iter + 1) * aa_scrwidth(context), aa_scrwidth(context));
+		memcpy(context->attrbuffer + (start + iter) * aa_scrwidth(context), context->attrbuffer + (start + iter + 1) * aa_scrwidth(context), aa_scrwidth(context));
+		iter++;
+	} while (iter < aa_scrheight(context) - start - 1);
 	memset(context->textbuffer + aa_scrwidth(context) * (aa_scrheight(context) - 1), ' ', aa_scrwidth(context));
 	memset(context->attrbuffer + aa_scrwidth(context) * (aa_scrheight(context) - 1), 0, aa_scrwidth(context));
 	cursor_y--;

@@ -293,4 +293,5 @@ void scene5(void)
     pauzicka();
     stmivac();
     centerx = 0;
+    destructor();
 }
