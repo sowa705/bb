@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
     MD_RegisterDriver(&drv_aix);
 #elif defined(SGI)
     MD_RegisterDriver(&drv_sgi);
+#elif defined(__APPLE__)
+    MD_RegisterDriver(&drv_coreaudio);
 #endif
     MD_RegisterPlayer(tickhandler);
 

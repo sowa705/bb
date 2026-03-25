@@ -61,6 +61,10 @@
 #define mikbannerdriver \
 " - AIX driver by Lutz Vieweg <lkv@mania.robin.de>\n"
 
+#elif defined(__APPLE__)
+#define mikbannerdriver \
+" - CoreAudio driver for macOS\n"
+
 #endif				/* driver definitions */
 
 #define mikbanner mikbannerhead mikbannerdriver mikbannertail
@@ -500,6 +504,7 @@ extern DRIVER drv_hp;		/* HP-UX /dev/audio driver */
 extern DRIVER drv_aix;		/* AIX audio-device driver */
 extern DRIVER drv_sgi;		/* SGI audio-device driver */
 extern DRIVER drv_tim;		/* timing driver */
+extern DRIVER drv_coreaudio;	/* macOS CoreAudio driver */
 
 
 /**************************************************************************

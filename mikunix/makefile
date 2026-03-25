@@ -41,14 +41,14 @@ CC = gcc
 #ULTRADRV=drv_old.o
 
 #OSFLAGS = -O3 $(OSDEF) $(ULTRA)
-OSFLAGS = -O3 $(OSDEF) 
+#OSFLAGS = -O3 $(OSDEF) 
 #debug options
 #OSFLAGS = -g $(OSDEF) $(ULTRA)
 
 #LIBS= -lm $(ULTRALIB)
-LIBS= -lm 
+#LIBS= -lm 
 #DRIVERS = drv_vox.o $(ULTRADRV)
-DRIVERS = drv_vox.o
+#DRIVERS = drv_vox.o
 
 ############################################################################
 #
@@ -156,6 +156,18 @@ DRIVERS = drv_vox.o
 #
 #LIBS= -laudio -lm 
 #DRIVERS = drv_sgi.o
+
+############################################################################
+#
+#   macOS / CoreAudio definitions
+#
+############################################################################
+
+OSDEF=
+CC = gcc
+OSFLAGS = -O3 $(OSDEF) -Wno-implicit-int -Wno-implicit-function-declaration -Wno-return-type
+LIBS = -lm -framework AudioToolbox -framework CoreFoundation
+DRIVERS = drv_coreaudio.o
 
 ############################################################################
 ############################################################################

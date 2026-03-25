@@ -39,7 +39,11 @@
 #define myfabs(x) fabs(x)
 #ifndef __STRICT_ANSI__
 #define CONSTF __attribute__ ((const))
+#if defined(__i386__) || defined(__x86_64__)
 #define REGISTERS(n) __attribute__ ((regparm(n)))
+#else
+#define REGISTERS(n)
+#endif
 #else
 #define CONSTF
 #define REGISTERS(n)

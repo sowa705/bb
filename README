@@ -9,6 +9,101 @@ Supports: dos (VGA + MDA), stdio, curses, slang, X11, gpm, linux-console
 Sound:  OSS, Sun audio, SGI, DEC Aplha, AIX, HP-UX, DOS (GUS CLASSIC, GUS
         CLASSIC, GUS MAX, GUS ACE, GUS PNP, SB, ESS, PC-buzzer 
 
+This fork adds: macOS (ARM64 / Apple Silicon) with curses display and
+CoreAudio sound.
+
+
+macOS ARM64 port
+================
+
+This fork contains changes to build and run BB on macOS with Apple
+Silicon (arm64).  Both terminal display (via ncurses) and sound
+playback (via CoreAudio) are fully working.
+
+Prerequisites
+-------------
+
+  - Xcode Command Line Tools (provides gcc/clang)
+  - Homebrew ncurses:  brew install ncurses
+  - aalib built from source with curses support (see below)
+
+Building aalib from source
+--------------------------
+
+The Homebrew aalib formula does not enable curses, so aalib must be
+built manually:
+
+  cd /tmp && mkdir aalib-src && cd aalib-src
+  curl -O https://sourceforge.net/projects/aa-project/files/aa-lib/1.4rc5/aalib-1.4.0.tar.gz
+  tar xzf aalib-1.4.0.tar.gz
+  cd aalib-1.4.0
+
+Edit src/aacurses.c and replace any use of stdscr->_maxx+1 /
+stdscr->_maxy+1 with the standard macros COLS / LINES (modern
+ncurses treats WINDOW as an opaque struct).
+
+Then build:
+
+  CFLAGS="-Wno-implicit-int -Wno-implicit-function-declaration" \
+    ./configure --with-curses-driver --without-x \
+    --with-curses-lib="-L/opt/homebrew/opt/ncurses/lib -lncurses" \
+    CPPFLAGS="-I/opt/homebrew/opt/ncurses/include"
+  make
+
+The static library will be at src/.libs/libaa.a.
+
+Building BB
+-----------
+
+The makefile is pre-configured for macOS.  Adjust the AALIB_SRC path
+in makefile if you built aalib in a different location, then:
+
+  make                     # builds bb binary
+  cd mikunix && make       # builds bb_snd_server
+
+Running
+-------
+
+  ./bb
+
+You will be prompted whether to enable music.  The demo runs in your
+terminal using the curses driver.
+
+Changes from upstream
+---------------------
+
+Build system:
+  - makefile: Configured for macOS with Homebrew ncurses paths and
+    locally-built aalib.  Suppresses old-C warnings that are errors
+    in modern Clang (-Wno-implicit-int, etc).
+  - aconfig.h: Hand-written for macOS.  Key settings:
+      HAVE_ALLOCA disabled (prevents stack overflow / SIGBUS on
+        ARM64 in the fractal zoomer's mkrealloc_table)
+      HAVE_USLEEP enabled
+      SIZEOF_LONG 8 (64-bit)
+      HAVE_SETITIMER disabled (references undeclared variables)
+
+Code fixes for ARM64 / 64-bit / macOS:
+  - config.h: __attribute__((regparm(n))) guarded with
+    #if defined(__i386__) || defined(__x86_64__) since regparm is
+    x86-only.
+  - mikunix/virtch.c, mikunix/munitrk.c: #include <malloc.h>
+    replaced with <stdlib.h> on __APPLE__ (macOS has no malloc.h).
+  - unix.c: Sound server launch changed from system() to
+    execvp()/execv() for reliable startup without shell overhead.
+  - unix.c: SIGBUS/SIGSEGV crash handler added that writes a
+    backtrace to /tmp/bb_crash.log for debugging.
+
+CoreAudio sound driver (new file):
+  - mikunix/drv_coreaudio.c: AudioQueue-based driver for macOS.
+    Uses 3 rotating buffers with pthread mutex/condvar
+    synchronization.  AudioQueueStart is deferred to the first
+    Update() call to keep audio in sync with the demo.
+  - mikunix/makefile: Added macOS/CoreAudio section with
+    -framework AudioToolbox -framework CoreFoundation.
+  - mikunix/main_ux.c: Registers drv_coreaudio on __APPLE__.
+  - mikunix/mikmod.h: Declares drv_coreaudio extern and banner.
+
 How this all started
 ====================
 

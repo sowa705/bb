@@ -1,0 +1,24 @@
+# Object files
+*.o
+
+# Binaries
+bb
+bb_snd_server
+test_size
+
+# Autoconf artifacts
+config.cache
+config.log
+config.status
+confdefs.h
+autom4te.cache/
+
+# Debug/temp files
+symbolicate_crash.sh
+test_size.c
+*.dSYM/
+/tmp/
+
+# Editor/OS junk
+*~
+.DS_Store

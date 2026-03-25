@@ -11,7 +11,11 @@
    All systems - all compilers
 
  */
+#ifdef __APPLE__
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 #include <string.h>
 #include "mikmod.h"
 

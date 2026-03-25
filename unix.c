@@ -27,7 +27,23 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <execinfo.h>
+#include <fcntl.h>
 #include "bb.h"
+
+static void crash_handler(int sig) {
+    void *frames[64];
+    int n = backtrace(frames, 64);
+    int fd = open("/tmp/bb_crash.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd >= 0) {
+        backtrace_symbols_fd(frames, n, fd);
+        close(fd);
+    }
+    /* Also dump to stderr so it's visible after curses cleans up */
+    backtrace_symbols_fd(frames, n, STDERR_FILENO);
+    _exit(128 + sig);
+}
 
 static int soundin;
 static int soundout;
@@ -85,21 +101,31 @@ static int start_sound(void)
 
     pid = fork();
     if (pid == (pid_t) 0) {	/* This is the child process.  */
-	char str[256];
-	sprintf(str, "bb_snd_server %i %i %i bb.s3m bb2.s3m bb3.s3m", freq, stereo, _16bit);
+	char freqstr[16], stereostr[4], bitstr[4];
+	char *args[8];
 	close(mypipe[0]);
 	close(mypipe2[1]);
 	close(1);
 	dup(mypipe[1]);
 	close(0);
 	dup(mypipe2[0]);
-	fflush(stdout);
-	if(system(str)) {
-	  sprintf(str, "./bb_snd_server %i %i %i bb.s3m bb2.s3m bb3.s3m", freq, stereo, _16bit);
-	  system(str);
-	}
+	sprintf(freqstr, "%i", freq);
+	sprintf(stereostr, "%i", stereo);
+	sprintf(bitstr, "%i", _16bit);
+	args[0] = "bb_snd_server";
+	args[1] = freqstr;
+	args[2] = stereostr;
+	args[3] = bitstr;
+	args[4] = "bb.s3m";
+	args[5] = "bb2.s3m";
+	args[6] = "bb3.s3m";
+	args[7] = NULL;
+	/* Try PATH first, then current directory */
+	execvp("bb_snd_server", args);
+	execv("./bb_snd_server", args);
+	/* If both fail, signal error and exit */
 	write(mypipe[1], "!", 1);
-	exit(0);
+	_exit(1);
     }
     else if (pid > (pid_t) 0) {	/* This is the parent process.  */
 	close(mypipe[1]);
@@ -156,6 +182,8 @@ int main(int argc, char *argv[])
     int retval;
     int p=0;
     char s[255];
+    signal(SIGBUS, crash_handler);
+    signal(SIGSEGV, crash_handler);
     bbinit(argc,argv);
     aa_puts(context, 0, p++, AA_SPECIAL, "Music?[Y/n]");
     aa_flush(context);

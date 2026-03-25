@@ -1,8 +1,9 @@
-# Generated automatically from Makefile.in by configure.
+# Configured for macOS (Darwin) with Homebrew
 CC     = gcc
-CFLAGS = -O -Wall -I/usr/pkg/include  -I/usr/X11R7/include
-LIBS   = -lcurses -lm -laa -L/usr/pkg/lib   -L/usr/X11R7/lib -lX11
-LFLAGS = -O
+AALIB_SRC = /tmp/aalib-src/aalib-1.4.0/src
+CFLAGS = -O2 -g -Wall -Wno-implicit-int -Wno-implicit-function-declaration -Wno-return-type -I$(AALIB_SRC) -I/opt/homebrew/opt/ncurses/include
+LIBS   = $(AALIB_SRC)/.libs/libaa.a -L/opt/homebrew/opt/ncurses/lib -lncurses -lm
+LFLAGS = -O2
 
 INCL = config.h 
  
